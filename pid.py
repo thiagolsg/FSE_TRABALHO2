@@ -39,8 +39,8 @@ def pid_controle(saida_medida,referencia = 90, Kp = 30, Ki = 0.2, Kd = 400.0):
     # Ki = 0.2
     # kd = 400.0
 
-
-    print(f'referencia = {referencia}')
+    # print(f'temperatura interna = {saida_medida}')
+    # print(f'referencia = {referencia}')
     erro = referencia - saida_medida
 
     erro_total += erro # Acumula o erro (Termo Integral)

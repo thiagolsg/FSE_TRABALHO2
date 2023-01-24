@@ -39,10 +39,10 @@ Acompanhe as curvas de referências se alterando conforme o tempo e a curva de t
 ### Imagens
 Curvas com o valor de temperatura de referência fixos:
 
-![curvas_normal](print_curvas3_new.png)
+![curvas_normal](imagens/print_curvas3_new.png)
 
 
 Curvas seguindo os valores de referências do arquivo de csv:
-![reflow](curva_reflow2.png)
+![reflow](imagens/curva_reflow2.png)
 
 

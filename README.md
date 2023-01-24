@@ -17,7 +17,7 @@ Execute o seguinte comando no terminal
 
 ### Etapa 2:
 
-Siga os comandos do terminal, para escolher se deja setar um valor fixo para a temperatura referencial, e se deseja escolher os valores dos parâmetros do PID Kp,Ki,Kd
+Siga os comandos do terminal, para escolher se deseja esciolher um valor fixo para a temperatura referencial, e se deseja escolher os valores dos parâmetros do PID Kp,Ki,Kd
 
 ### Etapa 3:
 Acompanhe pelo dashboard da placa escolhida.
@@ -33,7 +33,7 @@ Uso das curvas reflow
 
 * Clique na opção de curvas
 
-Acompanhe as curvas de referências se alterando conforme o tempo e a curva de temperatura interna acompanhando com a curva de sinal de controle.
+Acompanhe as curvas de referências se alterando conforme o tempo e a curva de temperatura interna se aproximando da temperatura de referencia com as curva de sinal de controle.
 
 
 ### Imagens

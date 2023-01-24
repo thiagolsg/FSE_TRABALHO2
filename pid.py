@@ -7,7 +7,6 @@ Kd = 0.0
 
 T = 1.0
 last_time = 0
-#erro_total = 0
 erro_anterior = 0.0
 sinal_de_controle_MAX = 100.0
 sinal_de_controle_MIN = -100.0
@@ -34,13 +33,6 @@ def pid_controle(saida_medida,referencia = 90, Kp = 30, Ki = 0.2, Kd = 400.0):
     sinal_de_controle_MAX = 100.0
     sinal_de_controle_MIN = -100.0
     
-    # referencia = 90
-    # Kp = 30
-    # Ki = 0.2
-    # kd = 400.0
-
-    # print(f'temperatura interna = {saida_medida}')
-    # print(f'referencia = {referencia}')
     erro = referencia - saida_medida
 
     erro_total += erro # Acumula o erro (Termo Integral)

@@ -2,15 +2,14 @@ import RPi.GPIO as GPIO
 import serial
 import struct
 from crc import calcula_CRC
-import codecs
 import time
 from pid import pid_controle
 from i2c import temperatura_ambiente
-import threading
 import csv
 from datetime import datetime
 from config import solicita_temperatura_interna,solicita_temperatura_referencial,le_usuario,liga_forno,desliga_forno,inicia_aquecimento,desliga_aquecimento,liga_curva,desliga_curva
 
+# CONFIGURAÇÕES DA GPIO
 ventoinha = 24
 resistor = 23
 
@@ -23,22 +22,23 @@ GPIO.setup(resistor, GPIO.OUT)
 ventoinha_pwm = GPIO.PWM(ventoinha,60)
 resistor_pwm = GPIO.PWM(resistor,60)
 
+# Inicializando a UART
 uart = serial.Serial("/dev/serial0")
 
+# Verifica o crc de cada comando recebido da uart
 def verifica_crc(tamanho_leitura = 9, tamanho_crc = 7):
     dado = uart.read(tamanho_leitura)
 
     resultado_crc = calcula_CRC(dado[:-2],tamanho_crc).to_bytes(2,'little')
     resultado_crc_mensagem = dado[-2:]
 
-    #print(dado)
     if resultado_crc ==  resultado_crc_mensagem:
         return dado
     else:
         return verifica_crc()
 
 
-# aux = b'\x00#\xc3\x00\x00\x00\x00CB'
+# Valores globais
 inicia = False
 Kp = 30
 Ki = 0.2
@@ -82,19 +82,17 @@ if entrada_pid != 'N':
 
 print('Acompanhe pelo Dashboard\n')
 
+# Contador da curva reflow
 count = 0
 try:
     while True:
         
 
         # TEMPERATURA INTERNA
-
-        uart.flushInput()
+        uart.flushInput() # Limpa o buffer
         uart.write(solicita_temperatura_interna)
         recebe_uart = verifica_crc()
-        #print(recebe_uart)#[3:-2])
         temp_interna = struct.unpack("f",recebe_uart[3:-2])
-        #print(f'temperatura interna = {int(temp_interna[0])}')
 
         # ENVIA TEMPERATURA
         if modo_terminal:
@@ -118,10 +116,7 @@ try:
                 envia_temperatura = b'\x01\x16\xd2\x08\x03\x02\x04' + temperatura_reflow
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
-                
-                #print(f'temperatura interna loop = {temp_interna[0]}')
-                
-                        
+                    
             elif count >= 60 and count < 120:
                 temp_referencial = [38]
                 temperatura_reflow = struct.pack('f', 38)
@@ -129,17 +124,12 @@ try:
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
 
-                
-
             elif count >= 120 and count < 240:
                 temp_referencial = [46]
                 temperatura_reflow = struct.pack('f', 46)
                 envia_temperatura = b'\x01\x16\xd2\x08\x03\x02\x04' + temperatura_reflow
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
-
-
-                
                     
             elif count >= 240 and count < 260:
                 temp_referencial = [54]
@@ -148,16 +138,12 @@ try:
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
 
-                
-                    
             elif count >= 260 and count < 300:
                 temp_referencial = [57]
                 temperatura_reflow = struct.pack('f', 57)
                 envia_temperatura = b'\x01\x16\xd2\x08\x03\x02\x04' + temperatura_reflow
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
-
-                
 
             elif count >= 300 and count < 360:
                 temp_referencial = [61]
@@ -166,16 +152,12 @@ try:
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
 
-                
-
             elif count >= 360 and count < 420:
                 temp_referencial = [63]
                 temperatura_reflow = struct.pack('f', 63)
                 envia_temperatura = b'\x01\x16\xd2\x08\x03\x02\x04' + temperatura_reflow
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
-
-                
 
             elif count >= 420 and count < 480:
                 temp_referencial = [54]
@@ -184,16 +166,12 @@ try:
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
 
-                
-
             elif count >= 480 and count < 600:
                 temp_referencial = [33]
                 temperatura_reflow = struct.pack('f', 33)
                 envia_temperatura = b'\x01\x16\xd2\x08\x03\x02\x04' + temperatura_reflow
                 crc_envia_temperatura = calcula_CRC(envia_temperatura, len(envia_temperatura)).to_bytes(2,'little')
                 uart.write(envia_temperatura + crc_envia_temperatura)
-
-                
 
             elif count >= 600:
                 temp_referencial = [25]
@@ -203,9 +181,7 @@ try:
                 uart.write(envia_temperatura + crc_envia_temperatura)
             
             count += 1
-            #print(count)
-        
-
+           
         # ENVIA TEMPERATURA AMBIENTE
         temp_ambiente = temperatura_ambiente()
         temp_ambiente_binario = struct.pack('f', temp_ambiente)
@@ -218,11 +194,11 @@ try:
         if inicia:
             valor_pid = pid_controle(int(temp_interna[0]),referencia = temp_referencial[0],Kp=Kp,Ki=Ki,Kd=Kd)
             if valor_pid < 0:
-                #print('ligou ventoinha')
+                #Ligou ventoinha
                 ventoinha_pwm.start(valor_pid * -1)
                 resistor_pwm.stop()
             else:
-                #print('ligou resistor')
+                #Ligou resistor
                 resistor_pwm.start(valor_pid)
                 ventoinha_pwm.stop()
 
@@ -233,8 +209,6 @@ try:
 
         
         #ESCREVE LOGS NO CSV
-
-        #print(temp_referencial[0])
         with open('log1.csv','a') as csvfile:
 
             if valor_pid < 0:
@@ -249,14 +223,10 @@ try:
             print(datetime.now().strftime('%d/%m/%Y %H:%M')+',',mensagem,file = csvfile)
 
         # LE COMANDOS DO USUARIO
-
         uart.write(le_usuario)
         recebe_uart = verifica_crc()
 
-        #print(str(hex(recebe_uart[3])))
         if '0x0' != str(hex(recebe_uart[3])):
-
-            #print(str(hex(recebe_uart[3])))
 
             if str(hex(recebe_uart[3])) == '0xa1':
                 print('LIGOU FORNO')
@@ -273,20 +243,15 @@ try:
             if str(hex(recebe_uart[3])) == '0xa3' and forno_estado:
                 print('INICIA AQUECIMENTO')
                 inicia = True
-
                 uart.write(inicia_aquecimento)
                 recebe_forno = verifica_crc()
-
-                #print(recebe_forno)
 
             if str(hex(recebe_uart[3])) == '0xa4':
                 print('DESLIGA AQUECIMENTO')
                 inicia = False
-    
                 uart.write(desliga_aquecimento)
                 recebe_forno = verifica_crc()
-                # print(recebe_forno)
-
+                
             if str(hex(recebe_uart[3])) == '0xa5':
                 print('MODO CURVA')
                 if modo_curva == True:
@@ -300,8 +265,8 @@ try:
         
         time.sleep(1)
 
+# Finaliza todo o sistema com o Ctrl + C 
 except KeyboardInterrupt:
-
 
     uart.write(desliga_curva)
     uart.write(desliga_aquecimento)

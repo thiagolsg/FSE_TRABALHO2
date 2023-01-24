@@ -1,4 +1,3 @@
-import struct
 from crc import calcula_CRC
 
 temp_interna = b'\x01\x23\xc1\x08\x03\x02\x04'
